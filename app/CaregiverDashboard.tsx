@@ -44,7 +44,7 @@ const CaregiverDashboard: React.FC = () => {
       <View style={[styles.header, { backgroundColor: theme.card }]}>
         <TouchableOpacity 
           style={styles.backButton} 
-          onPress={() => router.back()}
+          onPress={() => router.push('/Roles')}
         >
           <Ionicons name="arrow-back" size={30} color={theme.text} />
         </TouchableOpacity>
