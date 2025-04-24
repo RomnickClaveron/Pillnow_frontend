@@ -23,7 +23,7 @@ const FlashScreen = () => {
 
     // Navigate to the main screen after 3 seconds
     const timer = setTimeout(() => {
-      router.replace('/LoginScreen');
+      router.replace('/Roles');
     }, 3000);
 
     return () => clearTimeout(timer);
