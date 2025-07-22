@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, Image, TouchableOpacity, Modal, FlatList, ScrollView, StyleSheet } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from './context/ThemeContext';
 import { lightTheme, darkTheme } from './styles/theme';
+import { databaseService } from '../src/services/databaseService';
+import { authService } from '../src/services/authService';
+import { alarmService } from '../src/services/alarmService';
+import { ContainerData, ContainerState } from '../src/types/container';
 
 const SetScreen = () => {
   const navigation = useNavigation();
@@ -14,14 +18,37 @@ const SetScreen = () => {
   const [alarmModalVisible, setAlarmModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [warningModalVisible, setWarningModalVisible] = useState(false);
-  const [selectedPills, setSelectedPills] = useState({ 1: null, 2: null, 3: null });
-  const [alarms, setAlarms] = useState({ 1: [], 2: [], 3: [] });
-  const [currentPillSlot, setCurrentPillSlot] = useState(null);
+  const [selectedPills, setSelectedPills] = useState<ContainerState['selectedPills']>({ 1: null, 2: null, 3: null });
+  const [alarms, setAlarms] = useState<ContainerState['alarms']>({ 1: [], 2: [], 3: [] });
+  const [currentPillSlot, setCurrentPillSlot] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
   const pillChoices = ["Pill A", "Pill B", "Pill C", "Pill D", "Pill E"];
 
-  const handlePillSelection = (pill: string) => {
+  // Load container 1 data from Firebase
+  useEffect(() => {
+    const loadContainerData = async () => {
+      try {
+        const user = authService.getCurrentUser();
+        if (user) {
+          const containerData = await databaseService.read('containers', `container_1_${user.uid}`) as ContainerData;
+          if (containerData) {
+            setSelectedPills(prev => ({ ...prev, 1: containerData.pillName }));
+            setAlarms(prev => ({ ...prev, 1: containerData.alarms.map(alarm => new Date(alarm)) }));
+            setPhoneNumber(containerData.phoneNumber || '');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading container data:', error);
+      }
+    };
+
+    loadContainerData();
+  }, []);
+
+  const handlePillSelection = async (pill: string) => {
+    if (currentPillSlot === null) return;
     setSelectedPills((prev) => ({ ...prev, [currentPillSlot]: pill }));
     setPillModalVisible(false);
     setAlarmModalVisible(true);
@@ -45,11 +72,38 @@ const SetScreen = () => {
     setShowDatePicker(false);
   };
 
-  const confirmAlarm = () => {
+  const confirmAlarm = async () => {
+    if (currentPillSlot === null) return;
+    
+    const newAlarms = [...alarms[currentPillSlot], selectedDate];
     setAlarms((prev) => ({
       ...prev,
-      [currentPillSlot]: [...prev[currentPillSlot], selectedDate],
+      [currentPillSlot]: newAlarms,
     }));
+
+    // Save to Firebase for container 1
+    if (currentPillSlot === 1) {
+      try {
+        const user = authService.getCurrentUser();
+        if (user) {
+          const containerData: ContainerData = {
+            pillName: selectedPills[currentPillSlot] || '',
+            alarms: newAlarms.map(date => date.toISOString()),
+            userId: user.uid,
+            lastUpdated: new Date().toISOString(),
+            phoneNumber: phoneNumber
+          };
+
+          await databaseService.update('containers', `container_1_${user.uid}`, containerData);
+          
+          // Schedule alarms
+          await alarmService.scheduleAlarms(currentPillSlot, newAlarms);
+        }
+      } catch (error) {
+        console.error('Error saving container data:', error);
+      }
+    }
+
     setConfirmModalVisible(false);
     setAlarmModalVisible(false);
   };

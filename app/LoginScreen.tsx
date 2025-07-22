@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import PostLoginFlashScreen from "./PostLoginFlashScreen";
 import { useTheme } from "./context/ThemeContext";
 import { lightTheme, darkTheme } from "./styles/theme";
+import { authService } from "../src/services/authService";
 
 const LoginScreen = () => {
   const router = useRouter();
@@ -85,7 +86,7 @@ const LoginScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.registerButton}
-            onPress={() => router.push("/RegisterScreen")}
+            onPress={() => router.push("/Create")}
           >
             <Text style={[styles.registerText, { color: theme.primary }]}>
               Don't have an account? Register
