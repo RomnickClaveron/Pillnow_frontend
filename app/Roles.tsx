@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from './context/ThemeContext';
 import { lightTheme, darkTheme } from './styles/theme';
 
@@ -19,17 +18,6 @@ const Roles: React.FC = () => {
     }
   };
 
-  // Logout function
-  const handleLogout = async () => {
-    try {
-      console.log("Logging out...");
-      await AsyncStorage.removeItem("token");
-      router.replace("/LoginScreen");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
   return (
     <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       <View style={styles.headerButtons}>
@@ -40,12 +28,6 @@ const Roles: React.FC = () => {
           <Text style={[styles.themeToggleText, { color: theme.text }]}>
             {isDarkMode ? '🌙 Dark Mode' : '☀️ Light Mode'}
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.logoutButton, { backgroundColor: theme.error }]} 
-          onPress={handleLogout}
-        >
-          <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>
       
@@ -164,17 +146,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginVertical: 15,
-  },
-  logoutButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  logoutButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "white",
   },
 });
 
