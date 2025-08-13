@@ -1,11 +1,9 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useTheme } from './context/ThemeContext';
 import { lightTheme, darkTheme } from './styles/theme';
 
 const FlashScreen = () => {
-  const router = useRouter();
   const spinValue = new Animated.Value(0);
   const { isDarkMode } = useTheme();
   const theme = isDarkMode ? darkTheme : lightTheme;
@@ -20,13 +18,6 @@ const FlashScreen = () => {
         useNativeDriver: true,
       })
     ).start();
-
-    // Navigate to the main screen after 3 seconds
-    const timer = setTimeout(() => {
-      router.replace('/Roles');
-    }, 3000);
-
-    return () => clearTimeout(timer);
   }, []);
 
   const spin = spinValue.interpolate({

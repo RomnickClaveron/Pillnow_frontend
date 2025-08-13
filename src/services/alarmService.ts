@@ -36,7 +36,10 @@ class AlarmService {
         },
         onNotification: function(notification) {
           console.log('NOTIFICATION:', notification);
-          notification.finish('default');
+          // Add null check before calling finish
+          if (notification && typeof notification.finish === 'function') {
+            notification.finish('default');
+          }
         },
         onAction: function(notification) {
           console.log('ACTION:', notification.action);
@@ -50,11 +53,22 @@ class AlarmService {
           badge: true,
           sound: true,
         },
-        popInitialNotification: true,
+        popInitialNotification: false, // Changed to false to prevent the error
         requestPermissions: true,
       });
 
       this.isPushNotificationsConfigured = true;
+      
+      // Safely handle initial notification if needed
+      try {
+        PushNotification.popInitialNotification((notification) => {
+          if (notification) {
+            console.log('Initial notification found:', notification);
+          }
+        });
+      } catch (error) {
+        console.log('No initial notification or error reading it:', error);
+      }
     } catch (error) {
       console.error('Failed to setup push notifications:', error);
     }

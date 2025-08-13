@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View } from "react-native";
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { NavigationContainer } from '@react-navigation/native';
-import Roles from './Roles';
 import FlashScreen from './FlashScreen';
-
-const Drawer = createDrawerNavigator();
+import LoginScreen from './LoginScreen';
 
 export default function Index() {
   const [showFlash, setShowFlash] = useState(true);
@@ -23,9 +18,6 @@ export default function Index() {
     return <FlashScreen />;
   }
 
-  return (
-    <Drawer.Navigator>
-      <Drawer.Screen name="Roles" component={Roles} />
-    </Drawer.Navigator>
-  );
+  // Show login screen after flash screen
+  return <LoginScreen />;
 }

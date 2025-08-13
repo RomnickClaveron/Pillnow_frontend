@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from './context/ThemeContext';
 import { lightTheme, darkTheme } from './styles/theme';
+import { authService } from '../src/services/authService';
 
 const PostLoginFlashScreen = () => {
   const router = useRouter();
@@ -28,9 +29,26 @@ const PostLoginFlashScreen = () => {
       })
     ]).start();
 
-    // Navigate to the roles screen after 2 seconds
-    const timer = setTimeout(() => {
-      router.replace('/Roles');
+    // Navigate to the appropriate dashboard based on user role after 2 seconds
+    const timer = setTimeout(async () => {
+      try {
+        const userRole = await authService.getUserRole();
+        
+        // Redirect based on role: 2 = Elder, 3 = Caregiver
+        if (userRole === 2) {
+          router.replace('/ElderDashboard');
+        } else if (userRole === 3) {
+          router.replace('/CaregiverDashboard');
+        } else {
+          // If role is not available, show an alert and redirect to roles page
+          console.warn('User role not found, redirecting to roles selection');
+          router.replace('/Roles');
+        }
+      } catch (error) {
+        console.error('Error getting user role:', error);
+        // Fallback to roles page if there's an error
+        router.replace('/Roles');
+      }
     }, 2000);
 
     return () => clearTimeout(timer);

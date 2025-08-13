@@ -12,7 +12,7 @@ import { authService } from "../src/services/authService";
 
 const LoginScreen = () => {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPostLoginFlash, setShowPostLoginFlash] = useState(false);
@@ -22,21 +22,31 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     try {
       setLoading(true);
-      await AsyncStorage.removeItem("token"); // Clear previous token
-
-      const response = await axios.post("https://devapi-618v.onrender.com/api/auth/login", {
-        username,
-        password,
-      });
-
-      if (response.data?.token) {
-        await AsyncStorage.setItem("token", response.data.token);
-        console.log("Login successful. Token saved:", response.data.token);
+      
+      // Use the auth service for login
+      const result = await authService.login(email, password);
+      
+      if (result?.token) {
+        console.log("Login successful. Token saved:", result.token);
+        
+        // If role is not in the login response, fetch user data to get role
+        if (!result.user?.role) {
+          try {
+            const userData = await authService.getCurrentUser();
+            if (userData?.role) {
+              await AsyncStorage.setItem('userRole', userData.role.toString());
+            }
+          } catch (error) {
+            console.error("Error fetching user data:", error);
+          }
+        }
+        
         setShowPostLoginFlash(true);
       } else {
         Alert.alert("Login Failed", "Invalid username or password");
       }
     } catch (error: any) {
+      console.error("Login error:", error);
       Alert.alert("Login Failed", error.response?.data?.message || "Invalid credentials");
     } finally {
       setLoading(false);
@@ -58,10 +68,10 @@ const LoginScreen = () => {
               borderColor: theme.border,
               color: theme.text
             }]}
-            placeholder="Username"
+            placeholder="Email"
             placeholderTextColor={theme.textSecondary}
-            value={username}
-            onChangeText={setUsername}
+            value={email}
+            onChangeText={setEmail}
           />
           <TextInput
             style={[styles.input, { 
@@ -90,6 +100,14 @@ const LoginScreen = () => {
           >
             <Text style={[styles.registerText, { color: theme.primary }]}>
               Don't have an account? Register
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.registerButton}
+            onPress={() => router.push("/Roles")}
+          >
+            <Text style={[styles.registerText, { color: theme.secondary }]}>
+              Continue without login
             </Text>
           </TouchableOpacity>
         </View>

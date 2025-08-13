@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import MedicationNotification from './components/MedicationNotification';
 import { useTheme } from './context/ThemeContext';
 import { lightTheme, darkTheme } from './styles/theme';
+import { authService } from '../src/services/authService';
 
 const CaregiverDashboard: React.FC = () => {
   const router = useRouter();
@@ -18,6 +20,15 @@ const CaregiverDashboard: React.FC = () => {
 
   const handleDismissNotification = () => {
     setShowNotification(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      router.push('/LoginScreen');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -44,13 +55,21 @@ const CaregiverDashboard: React.FC = () => {
       <View style={[styles.header, { backgroundColor: theme.card }]}>
         <TouchableOpacity 
           style={styles.backButton} 
-          onPress={() => router.push('/Roles')}
+          onPress={() => router.push('/LoginScreen')}
         >
           <Ionicons name="arrow-back" size={30} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: theme.secondary }]}>
-          WELCOME TO, <Text style={[styles.highlight, { color: theme.primary }]}>PILLNOW</Text>
-        </Text>
+        <View style={styles.titleContainer}>
+          <Text style={[styles.title, { color: theme.secondary }]}>
+            WELCOME TO, <Text style={[styles.highlight, { color: theme.primary }]}>PILLNOW</Text>
+          </Text>
+        </View>
+        <TouchableOpacity 
+          style={styles.logoutButton} 
+          onPress={handleLogout}
+        >
+          <Ionicons name="log-out-outline" size={24} color={theme.text} />
+        </TouchableOpacity>
       </View>
 
       {/* Logo */}
@@ -125,7 +144,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     width: '100%',
     marginTop: 40,
     padding: 15,
@@ -135,10 +154,18 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 10,
   },
+  logoutButton: {
+    padding: 10,
+    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+    borderRadius: 8,
+  },
+  titleContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginLeft: 10,
   },
   highlight: {
     color: '#4A90E2',
@@ -191,6 +218,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginVertical: 10,
     elevation: 3,
+  },
+  profileButton: {
+    backgroundColor: '#4A90E2',
+  },
+  monitorButton: {
+    backgroundColor: '#D14A99',
   },
   buttonText: {
     textAlign: 'center',
